@@ -4,7 +4,7 @@
 #1-2: <DIV>-27 3#label<VID> -> <DIV>-9##label<VID>
 #1-2: <DIV>0 -5#label<VID> -> <DIV>0##label<VID>
 #1-2: <DIV>-15 -5#label<VID> -> <DIV>3##label<VID>
-#1-2: <DIV>9 0#label<VID> -> INFINITE RUNTIME!!
+#1-2: <DIV>9 0#label<VID> -> <DIVp>DIVISION BY ZERO!##label<pVID>
 :div
 	s:<DIV>-?[0-9]+:&;:
     b next_dv
@@ -279,38 +279,39 @@ b redirect
 
 #1-2: <DIVp>14 5#label<pVID> -> <DIVp>2##label<pVID>
 #1-2: <DIVp>5 14#label<pVID> -> <DIVp>0##label<pVID>
-#1-2: <DIVp>9 0#label<pVID> -> INFINITE RUNTIME!!
+#1-2: <DIVp>9 0#label<pVID> -> <DIVp>DIVISION BY ZERO!##label<pVID>
 :div_pos
-    #TODO: write a much simpler algorithm, which also handles /0!
     /(<DIVp>)([0-9]+)#/{
         s::\1\2 1,\2 \2#:
         b print_dvp
     }
-    s:#[^<]+<pVID>:,1&:
+    /(<DIVp>)[0-9]+ 0#/{
+        s::\1DIVISION BY ZERO!##:p
+        #b redirect (when lib can handle exceptions)
+        b EOS
+    }
+    s:#[^<]+<pVID>:,0 0&:
     :loop_dvp
-        s: ([0-9]+),([0-9]+)(#[^<]+<pVID>): \1,\2 <MULTp>\2 \1#result_mmp_dvp<pTLUM>\3:
-        b mult_pos
-        :result_mmp_dvp
-            s:<MULTp>([0-9]+)[^<]+<pTLUM>:\1:
+        s: ([0-9]+),[0-9]+ ([0-9]+):&<ADDp>\1 \2#result_ap_dvp<pDDA>:
+		b add_pos
+		:result_ap_dvp
+			s:(,[0-9]+ )[0-9]+<ADDp>([0-9]+)[^<]+<pDDA>:\1\2:
+        /<DIVp>([0-9]+) [0-9]+,[0-9]+ \1#/!{
+			s:<DIVp>([0-9]+) [0-9]+,[0-9]+ ([0-9]+):&<MAXp>\1 \2#result_Mp_dvp<pXAM>:
+			b max_pos
+			:result_Mp_dvp
+				s:<MAXp>([0-9]+)[^<]+<pXAM>:;\1:
+			/([0-9]+);\1#[^<]+<pVID>/b print_dvp
+			s:;[0-9]+(#[^<]+<pVID>):\1:
+		}
+		s:,([0-9]+) [0-9]+:&<INCp>\1#result_ip_dvp<pCNI>:
+		b incr_pos
+		:result_ip_dvp
+			s:,[0-9]+( [0-9]+)<INCp>([0-9]+)[^<]+<pCNI>:,\2\1:
         /<DIVp>([0-9]+) [0-9]+,[0-9]+ \1#/b print_dvp
-        s:(<DIVp>)([0-9]+) ([0-9]+),([0-9]+) ([0-9]+):&;<MAXp>\2 \5#result_Mp_dvp<pXAM>:
-        b max_pos
-        :result_Mp_dvp
-            s:<MAXp>([0-9]+)[^<]+<pXAM>:\1:
-        / ([0-9]+);\1#([^<]+<pVID>)/{
-            s:,([0-9]+) ([0-9]+);[0-9]+(#[^<]+<pVID>):,<DECp>\1#result_dp_dvp<pCED> \2\3:
-            b decr_pos
-            :result_dp_dvp
-                s:<DECp>([0-9]+)[^<]+<pCED>:\1:
-            b print_dvp
-        }
-        s:,([0-9]+) [0-9]+;[0-9]+(#[^<]+<pVID>):,<INCp>\1#result_ip_dvp<pCNI>\2:
-        b incr_pos
-        :result_ip_dvp
-            s:<INCp>([0-9]+)[^<]+<pCNI>:\1:
     b loop_dvp
     :print_dvp
-        s:(<DIVp>)[0-9]+ [0-9]+,([0-9]+) [0-9]+:\1\2#:
+        s:(<DIVp>)[0-9]+ [0-9]+,([0-9]+) [0-9]+(;[0-9]+)?:\1\2#:
 b redirect
 
 
@@ -506,9 +507,8 @@ b redirect
     /##result_dp_sp_2<pCED>/b result_dp_sp_2
     /##result_dp_mmp<pCED>/b result_dp_mmp
     /##result_ap_mmp<pDDA>/b result_ap_mmp
-    /##result_mmp_dvp<pTLUM>/b result_mmp_dvp
+    /##result_ap_dvp<pDDA>/b result_ap_dvp
     /##result_Mp_dvp<pXAM>/b result_Mp_dvp
-    /##result_dp_dvp<pCED>/b result_dp_dvp
     /##result_ip_dvp<pCNI>/b result_ip_dvp
 b continue_redirects_1
 
