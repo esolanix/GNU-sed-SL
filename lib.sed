@@ -1,285 +1,545 @@
-######################### MATH / UTILS #########################
+######################### MATH LIB #########################
 
-#4: <LCG>seed a c m#label<GCL> -> <LCG>new_seed##label<GCL>
-:lcg_pos
-	s:(<LCG>)([0-9]+ [0-9]+):\1<MULT>\2#result_mpp_lcgp<TLUM>:
-	b mult_pos
-	:result_mpp_lcgp
-		s:(<LCG>)<MULT>([0-9]+)[^<]+<TLUM>:\1\2:
-	s:(<LCG>)([0-9]+) ([0-9]+):\1<ADD>\3 \2#result_ap_lcgp<DDA>:
-	b add_pos
-	:result_ap_lcgp
-		s:(<LCG>)<ADD>([0-9]+)[^<]+<DDA>:\1\2:
-	s:(<LCG>)([0-9]+ [0-9]+):\1<MOD>\2#result_mdp_lcgp<DOM>:
-	b mod_pos
-	:result_mdp_lcgp
-		s:(<LCG>)<MOD>([0-9]+)[^<]+<DOM>:\1\2#:
+#1-2: <DIV>14 5#label<VID> -> <DIV>2##label<VID>
+#1-2: <DIV>-27 3#label<VID> -> <DIV>-9##label<VID>
+#1-2: <DIV>0 -5#label<VID> -> <DIV>0##label<VID>
+#1-2: <DIV>-15 -5#label<VID> -> <DIV>3##label<VID>
+#1-2: <DIV>9 0#label<VID> -> INFINITE RUNTIME!!
+:div
+	s:<DIV>-?[0-9]+:&;:
+    b next_dv
+    :loop_dv
+        /(<DIV>)-([0-9]+) -([0-9]+);/{
+            s::\1<DIVp>\2 \3#result_dvp_dv_1<pVID>;:
+            b div_pos
+            :result_dvp_dv_1
+                s:<DIVp>([0-9]+)[^<]+<pVID>:\1:
+            b next_dv
+        }
+        /(<DIV>)-([0-9]+) ([0-9]+);/{
+            s::\1<DIVp>\2 \3#result_dvp_dv_2<pVID>;:
+            b div_pos
+            :result_dvp_dv_2
+                s:<DIVp>([0-9]+)[^<]+<pVID>:-\1:
+            b next_dv
+        }
+        /(<DIV>)([0-9]+) -([0-9]+);/{
+            s::\1<DIVp>\2 \3#result_dvp_dv_3<pVID>;:
+            b div_pos
+            :result_dvp_dv_3
+                s:<DIVp>0[^<]+<pVID>:0:
+                s:<DIVp>([0-9]+)[^<]+<pVID>:-\1:
+            b next_dv
+        }
+        s:(<DIV>)([0-9]+) ([0-9]+);:\1<DIVp>\2 \3#result_dvp_dv_4<pVID>;:
+        b div_pos
+        :result_dvp_dv_4
+            s:<DIVp>([0-9]+)[^<]+<pVID>:\1:
+    :next_dv
+        /;#[^<]+<VID>/b print_dv
+        s:(<DIV>[^;]+);( -?[0-9]+):\1\2;:
+    b loop_dv
+    :print_dv
+        s:;(#[^<]+<VID>):#\1:
 b redirect
 
 
-#2: <INTERSECTION>3 4 5,2 3 4 5 6 7 8#label<NOITCESRETNI> -> <INTERSECTION>1##label<NOITCESRETNI>
-:intersection_pos
-	s:(<INTERSECTION>)([^,]+):\1!\2 :
-	:loop_isp
-		/<INTERSECTION>[^!]+!,/{
-			s:(<INTERSECTION>)[^#]+:\10:
-			b print_isp
-		}
-		/<INTERSECTION>[^!]*!([0-9]+) [^,]*,[^#]*\b\1\b/{
-			s:(<INTERSECTION>)[^#]+:\11:
-			b print_isp
-		}
-		s:(<INTERSECTION>[^!]*)!([0-9]+ ):\1\2!:
-	b loop_isp
-	:print_isp
-		s:#[^<]+<NOITCESRETNI>:#&:
+#1+: <MULT>9 1 -14 -10#label<TLUM> -> <MULT>1260##label<TLUM>
+:mult
+	s:<MULT>-?[0-9]+:&;:
+    b next_mm
+    :loop_mm
+        /(<MULT>)-([0-9]+) -([0-9]+);/{
+            s::\1<MULTp>\2 \3#result_mmp_mm_1<pTLUM>;:
+            b mult_pos
+            :result_mmp_mm_1
+                s:<MULTp>([0-9]+)[^<]+<pTLUM>:\1:
+            b next_mm
+        }
+        /(<MULT>)-([0-9]+) ([0-9]+);/{
+            s::\1<MULTp>\2 \3#result_mmp_mm_2<pTLUM>;:
+            b mult_pos
+            :result_mmp_mm_2
+                s:<MULTp>([0-9]+)[^<]+<pTLUM>:-\1:
+            b next_mm
+        }
+        /(<MULT>)([0-9]+) -([0-9]+);/{
+            s::\1<MULTp>\2 \3#result_mmp_mm_3<pTLUM>;:
+            b mult_pos
+            :result_mmp_mm_3
+                s:<MULTp>([0-9]+)[^<]+<pTLUM>:-\1:
+            b next_mm
+        }
+        s:(<MULT>)([0-9]+) ([0-9]+);:\1<MULTp>\2 \3#result_mmp_mm_4<pTLUM>;:
+        b mult_pos
+        :result_mmp_mm_4
+            s:<MULTp>([0-9]+)[^<]+<pTLUM>:\1:
+    :next_mm
+        /;#[^<]+<TLUM>/b print_mm
+        s:(<MULT>[^;]+);( -?[0-9]+):\1\2;:
+    b loop_mm
+    :print_mm
+        s:;(#[^<]+<TLUM>):#\1:
 b redirect
 
 
-#2: <SUBSET>3 4 5,2 3 4 5 6 7 8#label<TESBUS> -> <SUBSET>1##label<TESBUS>
-:subset_pos
-	s:(<SUBSET>)([^,]+):\1!\2 :
-	:loop_ssp
-		/<SUBSET>[^!]+!,/{
-			s:(<SUBSET>)[^#]+:\11:
-			b print_ssp
-		}
-		/<SUBSET>[^!]*!([0-9]+) [^,]*,[^#]*\b\1\b/{
-			s:(<SUBSET>[^!]*)!([0-9]+ ):\1\2!:
-			b loop_ssp
-		}
-	s:(<SUBSET>)[^#]+:\10:
-	:print_ssp
-		s:#[^<]+<TESBUS>:#&:
+#1-2: <SUB>14 9#label<BUS> -> <SUB>5##label<BUS>
+#1-2: <SUB>-14 9#label<BUS> -> <SUB>-23##label<BUS>
+#1-2: <SUB>0 -9#label<BUS> -> <SUB>9##label<BUS>
+#1-2: <SUB>-14 -9#label<BUS> -> <SUB>-5##label<BUS>
+:sub
+	s:<SUB>-?[0-9]+:&;:
+    b next_s
+    :loop_s
+        /(<SUB>)-([0-9]+) -([0-9]+);/{
+            s::\1<SUBp>\3 \2#result_sp_s_1<pBUS>;:
+            b sub_pos
+            :result_sp_s_1
+                s:<SUBp>(-?[0-9]+)[^<]+<pBUS>:\1:
+            b next_s
+        }
+        /(<SUB>)-([0-9]+) ([0-9]+);/{
+            s::\1<ADDp>\2 \3#result_ap_s_1<pDDA>;:
+            b add_pos
+            :result_ap_s_1
+                s:<ADDp>([0-9]+)[^<]+<pDDA>:-\1:
+            b next_s
+        }
+        /(<SUB>)([0-9]+) -([0-9]+);/{
+            s::\1<ADDp>\2 \3#result_ap_s_2<pDDA>;:
+            b add_pos
+            :result_ap_s_2
+                s:<ADDp>([0-9]+)[^<]+<pDDA>:\1:
+            b next_s
+        }
+        s:(<SUB>)([0-9]+) ([0-9]+);:\1<SUBp>\2 \3#result_sp_s_2<pBUS>;:
+        b sub_pos
+        :result_sp_s_2
+            s:<SUBp>(-?[0-9]+)[^<]+<pBUS>:\1:
+    :next_s
+        /;#[^<]+<BUS>/b print_s
+        s:(<SUB>[^;]+);( -?[0-9]+):\1\2;:
+    b loop_s
+    :print_s
+        s:;(#[^<]+<BUS>):#\1:
 b redirect
 
 
-#1+: <SEQ>3-5,2-8,7-7#label<QES> -> <SEQ>3 4 5,2 3 4 5 6 7 8,7##label<QES>
-:seq_pos
-	s:<SEQ>:&,:
-	b next_sp
-	:loop_sp
-		/,([0-9]+)<INC>\1#[^<]+<CNI>[^<]+<QES>/b next_sp
-		b incr_pos
-		:result_ip_sp
-			s:(<INC>)([0-9]+)#([^<]+<CNI>)([^,#]+)([^<]+<QES>):\1\2\3\4 \2\5:
-	b loop_sp
-	:next_sp
-		s:,[0-9]+<INC>[^<]+<CNI>([^<]+<QES>):,\1:
-		/,[0-9]+-[0-9]+[,#][^<]+<QES>/!b print_sp
-		s:,([0-9]+)-([0-9]+)([,#][^<]+<QES>):,\2<INC>\1#result_ip_sp<CNI>\1\3:
-	b loop_sp
-	:print_sp
-		s:(<SEQ>),([^#]+)(#[^<]+<QES>):\1\2#\3:
+#1+: <ADD>9 14 0 -8 -16#label<DDA> -> <ADD>-1##label<DDA>
+:add
+	s:<ADD>-?[0-9]+:&;:
+    b next_a
+    :loop_a
+        /(<ADD>)-([0-9]+) -([0-9]+);/{
+            s::\1<ADDp>\2 \3#result_ap_a_1<pDDA>;:
+            b add_pos
+            :result_ap_a_1
+                s:<ADDp>([0-9]+)[^<]+<pDDA>:-\1:
+            b next_a
+        }
+        /(<ADD>)-([0-9]+) ([0-9]+);/{
+            s::\1<SUBp>\3 \2#result_sp_a_1<pBUS>;:
+            b sub_pos
+            :result_sp_a_1
+                s:<SUBp>(-?[0-9]+)[^<]+<pBUS>:\1:
+            b next_a
+        }
+        /(<ADD>)([0-9]+) -([0-9]+);/{
+            s::\1<SUBp>\2 \3#result_sp_a_2<pBUS>;:
+            b sub_pos
+            :result_sp_a_2
+                s:<SUBp>(-?[0-9]+)[^<]+<pBUS>:\1:
+            b next_a
+        }
+        s:(<ADD>)([0-9]+) ([0-9]+);:\1<ADDp>\2 \3#result_ap_a_2<pDDA>;:
+        b add_pos
+        :result_ap_a_2
+            s:<ADDp>([0-9]+)[^<]+<pDDA>:\1:
+    :next_a
+        /;#[^<]+<DDA>/b print_a
+        s:(<ADD>[^;]+);( -?[0-9]+):\1\2;:
+    b loop_a
+    :print_a
+        s:;(#[^<]+<DDA>):#\1:
 b redirect
 
 
-#1+: <MAX>1 2 3#label<XAM> -> <MAX>3##label<XAM>
-:max_pos
-	s:(<MAX>)([0-9]+#):\10 \2:
-	s: ?([0-9]+) ([0-9]+)(#[^<]+<XAM>):A\1,\1B\2,\2M\2\3:
-	:loop_Mp
-		/,0[BM][^<]+<XAM>/b next_Mp
-		s:,([0-9]+)(B[^<]+<XAM>):,<DEC>\1#result_dp_Mp1<CED>\2:
-		b decr_pos
-		:result_dp_Mp1
-			s:,<DEC>([0-9]+)#[^<]+<CED>(B[^<]+<XAM>):,\1\2:
-		s:,([0-9]+)(M[^<]+<XAM>):,<DEC>\1#result_dp_Mp2<CED>\2:
-		b decr_pos
-		:result_dp_Mp2
-			s:,<DEC>([0-9]+)#[^<]+<CED>(M[^<]+<XAM>):,\1\2:
-	b loop_Mp
-	:next_Mp
-		s:A([0-9]+),[1-9][0-9]*B[0-9]+,0M[0-9]+([^<]+<XAM>):A0,0B0,0M\1\2:
-		/<MAX>A/b print_Mp
-		s:B[0-9]+,[0-9]+M([0-9]+)([^<]+<XAM>):B\1,\1M\1\2:
-		s: ?([0-9]+)A[0-9]+,[0-9]+:A\1,\1:
-	b loop_Mp
-	:print_Mp
-		s:A[0-9]+,[0-9]+B[0-9]+,[0-9]+M([0-9]+):\1:
-		s:#[^<]+<XAM>:#&:
+#1+: <MAX>110 34 0 -34 -110#label<XAM> -> <MAX>110##label<XAM>
+:max
+    s:<MAX>-?[0-9]+:&;:
+    b next_M
+    :loop_M
+        /(<MAX>)-([0-9]+) -([0-9]+);/{
+            s::\1<MINp>\2 \3#result_mp_M<pNIM>;:
+            b min_pos
+            :result_mp_M
+                s:<MINp>([0-9]+)[^<]+<pNIM>:-\1:
+            b next_M
+        }
+        /(<MAX>)(-[0-9]+) ([0-9]+);/{
+            s::\1\3;:
+            b next_M
+        }
+        /(<MAX>)([0-9]+) (-[0-9]+);/{
+            s::\1\2;:
+            b next_M
+        }
+        s:(<MAX>)([0-9]+) ([0-9]+);:\1<MAXp>\2 \3#result_Mp_M<pXAM>;:
+        b max_pos
+        :result_Mp_M
+            s:<MAXp>([0-9]+)[^<]+<pXAM>:\1:
+    :next_M
+        /;#[^<]+<XAM>/b print_M
+        s:(<MAX>[^;]+);( -?[0-9]+):\1\2;:
+    b loop_M
+    :print_M
+        s:;(#[^<]+<XAM>):#\1:
 b redirect
 
 
-#1+: <MIN>1 2 3#label<NIM> -> <MIN>1##label<NIM>
-:min_pos
-        s:(<MIN>)([0-9]+)#:\1\20 \2#:
-	s:(<MIN>0)0:\1:
-        s: ?([0-9]+) ([0-9]+)(#[^<]+<NIM>):A\1,\1B\2,\2m\2\3:
-        :loop_mp
-                /,0[Bm][^<]+<NIM>/b next_mp
-#compare lengths first before the dec method
-                s:,([0-9]+)(B[^<]+<NIM>):,<DEC>\1#result_dp_mp1<CED>\2:
-                b decr_pos
-                :result_dp_mp1
-                        s:,<DEC>([0-9]+)#[^<]+<CED>(B[^<]+<NIM>):,\1\2:
-                s:,([0-9]+)(m[^<]+<NIM>):,<DEC>\1#result_dp_mp2<CED>\2:
-                b decr_pos
-                :result_dp_mp2
-                        s:,<DEC>([0-9]+)#[^<]+<CED>(m[^<]+<NIM>):,\1\2:
-        b loop_mp
-        :next_mp
-                s:A([0-9]+),0B[0-9]+,[1-9][0-9]*m[0-9]+([^<]+<NIM>):A0,0B0,0m\1\2:
-                /<MIN>A/b print_mp
-                s:B[0-9]+,[0-9]+m([0-9]+)([^<]+<NIM>):B\1,\1m\1\2:
-                s: ?([0-9]+)A[0-9]+,[0-9]+:A\1,\1:
-        b loop_mp
-        :print_mp
-                s:A[0-9]+,[0-9]+B[0-9]+,[0-9]+m([0-9]+):\1:
-                s:#[^<]+<NIM>:#&:
+#1+: <MIN>110 34 0 -34 -110#label<NIM> -> <MIN>-110##label<NIM>
+:min
+    s:<MIN>-?[0-9]+:&;:
+    b next_m
+    :loop_m
+        /(<MIN>)-([0-9]+) -([0-9]+);/{
+            s::\1<MAXp>\2 \3#result_Mp_m<pXAM>;:
+            b max_pos
+            :result_Mp_m
+                s:<MAXp>([0-9]+)[^<]+<pXAM>:-\1:
+            b next_m
+        }
+        /(<MIN>)(-[0-9]+) ([0-9]+);/{
+            s::\1\2;:
+            b next_m
+        }
+        /(<MIN>)([0-9]+) (-[0-9]+);/{
+            s::\1\3;:
+            b next_m
+        }
+        s:(<MIN>)([0-9]+) ([0-9]+);:\1<MINp>\2 \3#result_mp_m<pNIM>;:
+        b min_pos
+        :result_mp_m
+            s:<MINp>([0-9]+)[^<]+<pNIM>:\1:
+    :next_m
+        /;#[^<]+<NIM>/b print_m
+        s:(<MIN>[^;]+);( -?[0-9]+):\1\2;:
+    b loop_m
+    :print_m
+        s:;(#[^<]+<NIM>):#\1:
 b redirect
 
 
-#2: <MOD>5 2#label<DOM> -> <MOD>1##label<DOM>
-:mod_pos
-	s:#[^>]+<DOM>:,0 0,0&:
-	:loop_mdp_1
-		s:(<MOD>[0-9]+ [0-9]+,)([0-9]+) [0-9]+,[0-9]+:\1\2 \2:
-		s:(<MOD>[0-9]+ )([0-9]+),([0-9]+):\1\2,<ADD>\2 \3#result_ap_mdp<DDA>:
-		b add_pos
-		:result_ap_mdp
-			s:<ADD>([0-9]+)[^>]+<DDA>([^>]+<DOM>):\1\2:
-		s:<MOD>([0-9]+) [0-9]+,([0-9]+) [0-9]+:&<MIN>\1 \2#result_mp_mdp<NIM>:
-		b min_pos
-		:result_mp_mdp
-			s:<MIN>([0-9]+)[^>]+<NIM>:,\1:
-	/<MOD>([0-9]+) [0-9]+,[0-9]+ [0-9]+,\1/!b loop_mdp_1
-	/<MOD>([0-9]+) [0-9]+,\1 / s:(<MOD>[0-9]+ [0-9]+),([0-9]+) [0-9]+:\1,\2 \2:
-	s:(<MOD>[0-9]+) [0-9]+,[0-9]+ ([0-9]+),[0-9]+:\1,\2 0:
-	:loop_mdp_2
-		/<MOD>([0-9]+),\1/b print_mdp
-		s:(<MOD>)([0-9]+):\1<DEC>\2#result_dp_mdp<CED>:
-		b decr_pos
-		:result_dp_mdp
-			s:<DEC>([0-9]+)[^>]+<CED>:\1:
-		s:(<MOD>[0-9]+,[0-9]+ )([0-9]+):\1<INC>\2#result_ip_mdp<CNI>:
-		b incr_pos
-		:result_ip_mdp
-			s:<INC>([0-9]+)[^>]+<CNI>:\1:
-	b loop_mdp_2
-	:print_mdp
-		s:(<MOD>)[0-9]+,[0-9]+ ([0-9]+):\1\2#:
+#1+: <DEC>10 0 -9#label<CED> -> <DEC>9 -1 -10##label<CED>
+:decr
+    s:<DEC>:&;:
+    :loop_d
+        /<DEC>[^;]*; ?-/{
+            s:(<DEC>[^;]*; ?)-([0-9]+):\1<INCp>\2#result_ip_d<pCNI>:
+            b incr_pos
+            :result_ip_d
+                s:<INCp>([0-9]+)[^<]+<pCNI>:-\1:
+            b next_d
+        }
+        s:(<DEC>[^;]*; ?)([0-9]+):\1<DECp>\2#result_dp_d<pCED>:
+        b decr_pos
+        :result_dp_d
+            s:<DECp>(-?[0-9]+)[^<]+<pCED>:\1:
+    :next_d
+        s:(<DEC>[^;]*);( ?-?[0-9]+):\1\2;:
+    /;#[^<]+<CED>/!b loop_d
+    s:;(#[^<]+<CED>):#\1:
 b redirect
 
 
-#1+: <MULT>2 3 4#label<TLUM> -> <MULT>24##label<TLUM>
+#1+: <INC>9 0 -10 -1#label<CNI> -> <INC>10 1 -9 0##label<CNI>
+:incr
+    s:<INC>:&;:
+    :loop_i
+        /<INC>[^;]*; ?-/{
+            s:(<INC>[^;]*; ?)-([0-9]+):\1<DECp>\2#result_dp_i<pCED>:
+            b decr_pos
+            :result_dp_i
+                s:<DECp>0#[^<]+<pCED>:0:
+                s:<DECp>([0-9]+)[^<]+<pCED>:-\1:
+            b next_i
+        }
+        s:(<INC>[^;]*; ?)([0-9]+):\1<INCp>\2#result_ip_i<pCNI>:
+        b incr_pos
+        :result_ip_i
+            s:<INCp>([0-9]+)[^<]+<pCNI>:\1:
+    :next_i
+        s:(<INC>[^;]*);( ?-?[0-9]+):\1\2;:
+    /;#[^<]+<CNI>/!b loop_i
+    s:;(#[^<]+<CNI>):#\1:
+b redirect
+
+
+######################### BASE LIB #########################
+
+#1-2: <DIVp>14 5#label<pVID> -> <DIVp>2##label<pVID>
+#1-2: <DIVp>5 14#label<pVID> -> <DIVp>0##label<pVID>
+#1-2: <DIVp>9 0#label<pVID> -> INFINITE RUNTIME!!
+:div_pos
+    #TODO: write a much simpler algorithm, which also handles /0!
+    /(<DIVp>)([0-9]+)#/{
+        s::\1\2 1,\2 \2#:
+        b print_dvp
+    }
+    s:#[^<]+<pVID>:,1&:
+    :loop_dvp
+        s: ([0-9]+),([0-9]+)(#[^<]+<pVID>): \1,\2 <MULTp>\2 \1#result_mmp_dvp<pTLUM>\3:
+        b mult_pos
+        :result_mmp_dvp
+            s:<MULTp>([0-9]+)[^<]+<pTLUM>:\1:
+        /<DIVp>([0-9]+) [0-9]+,[0-9]+ \1#/b print_dvp
+        s:(<DIVp>)([0-9]+) ([0-9]+),([0-9]+) ([0-9]+):&;<MAXp>\2 \5#result_Mp_dvp<pXAM>:
+        b max_pos
+        :result_Mp_dvp
+            s:<MAXp>([0-9]+)[^<]+<pXAM>:\1:
+        / ([0-9]+);\1#([^<]+<pVID>)/{
+            s:,([0-9]+) ([0-9]+);[0-9]+(#[^<]+<pVID>):,<DECp>\1#result_dp_dvp<pCED> \2\3:
+            b decr_pos
+            :result_dp_dvp
+                s:<DECp>([0-9]+)[^<]+<pCED>:\1:
+            b print_dvp
+        }
+        s:,([0-9]+) [0-9]+;[0-9]+(#[^<]+<pVID>):,<INCp>\1#result_ip_dvp<pCNI>\2:
+        b incr_pos
+        :result_ip_dvp
+            s:<INCp>([0-9]+)[^<]+<pCNI>:\1:
+    b loop_dvp
+    :print_dvp
+        s:(<DIVp>)[0-9]+ [0-9]+,([0-9]+) [0-9]+:\1\2#:
+b redirect
+
+
+#1-2: <MULTp>9 14#label<pTLUM> -> <MULTp>126##label<pTLUM>
 :mult_pos
-	s:(<MULT>)([0-9]+#):\11 \2:
-	:loop_mpp
-		/ ?\b0\b ([0-9]+)(#[^<]+<TLUM>)/{
-			s:(<MULT>)[^#]+:\1 0:
-			b print_mpp
-		}
-		s: ?([0-9]+) ([0-9]+)(#[^<]+<TLUM>):<ADD>\1 \2#result_ap_mpp<DDA>\3:
-		s:(<ADD>)([0-9]+) ([^<]+<DDA>[^<]+<TLUM>):\1<SEQ>1-\2#result_sp_mpp<QES>\3:
-		b seq_pos
-		:result_sp_mpp
-			s:(<SEQ>)[0-9]+ ?([^#]*[^<]+<QES>)([0-9]+):\3 \1\2\3:
-		/<SEQ>#/!b result_sp_mpp
-		s: <SEQ>[^<]+<QES>[0-9]+::
-		b add_pos
-		:result_ap_mpp
-			s:<ADD>([^#]+)[^<]+<DDA>: \1:
-	/<MULT>[0-9]+ /b loop_mpp
-	:print_mpp
-		s:(<MULT>) :\1:
-		s:#[^<]+<TLUM>:#&:
+	/(<MULTp>)([0-9]+)#/{
+        s::\10 \2,\2:
+        b print_mmp
+    }
+    s:#[^<]+<pTLUM>:,0&:
+	:loop_mmp
+        /<MULTp>0/b print_mmp
+        s:(<MULTp>)([0-9]+):\1<DECp>\2#result_dp_mmp<pCED>:
+        b decr_pos
+        :result_dp_mmp
+            s:<DECp>([0-9]+)[^<]+<pCED>:\1:
+        s:(<MULTp>[0-9]+ )([0-9]+),([0-9]+):\1\2,<ADDp>\3 \2#result_ap_mmp<pDDA>:
+        b add_pos
+        :result_ap_mmp
+            s:<ADDp>([0-9]+)[^<]+<pDDA>:\1:
+    b loop_mmp
+	:print_mmp
+		s:(<MULTp>)0 [0-9]+,([0-9]+):\1\2#:
 b redirect
 
 
-#1+: <ADD>1 2 3#label<DDA> -> <ADD>6##label<DDA>
+#1-2: <SUBp>9 14#label<pBUS> -> <SUBp>-5##label<pBUS>
+#1-2: <SUBp>14 9#label<pBUS> -> <SUBp>5##label<pBUS>
+:sub_pos
+    /<SUBp>[0-9]+#/b print_sp
+    :loop_sp
+        /<SUBp>((0 )|([0-9]+ 0))/{
+            s:(<SUBp>)([0-9]+) 0:\1\2:
+            s:(<SUBp>)0 ([0-9]+):\1-\2:
+            b print_sp
+        }
+        s:(<SUBp>)([0-9]+):\1<DECp>\2#result_dp_sp_1<pCED>:
+        b decr_pos
+        :result_dp_sp_1
+            s:<DECp>([0-9]+)[^<]+<pCED>:\1:
+        s:(<SUBp>[0-9]+ )([0-9]+):\1<DECp>\2#result_dp_sp_2<pCED>:
+        b decr_pos
+        :result_dp_sp_2
+            s:<DECp>([0-9]+)[^<]+<pCED>:\1:
+    b loop_sp
+    :print_sp
+        s:#[^<]+<pBUS>:#&:
+b redirect
+
+
+#1-2: <ADDp>9 14#label<pDDA> -> <ADDp>23##label<pDDA>
 :add_pos
-	s:(<ADD>)([0-9]+#):\10 \2:
-	s: ?([0-9]+) ([0-9]+)(#[^<]+<DDA>):<DEC>\1#result_dp_ap<CED><INC>\2#result_ip_ap<CNI>\3:
-	:loop_ap
-		/<DEC>0/b next_ap
-		b decr_pos
-		:result_dp_ap
-			s:#([^<]+<CED>):\1:
-		b incr_pos
-		:result_ip_ap
-			s:#([^<]+<CNI>):\1:
-	b loop_ap
-	:next_ap
-		/<ADD><DEC>/b print_ap
-		s: ?([0-9]+)(<DEC>)0:\2\1:
-	b loop_ap
-	:print_ap
-		s:<DEC>0#result_dp_ap<CED><INC>([0-9]+)#result_ip_ap<CNI>(#[^<]+<DDA>):\1#\2:
+    /<ADDp>[0-9]+#/b print_ap
+    :loop_ap
+        /<ADDp>0/{
+            s:(<ADDp>)0 :\1:
+            b print_ap
+        }
+        s:(<ADDp>)([0-9]+):\1<DECp>\2#result_dp_ap<pCED>:
+        b decr_pos
+        :result_dp_ap
+            s:<DECp>([0-9]+)[^<]+<pCED>:\1:
+        s:(<ADDp>[0-9]+ )([0-9]+):\1<INCp>\2#result_ip_ap<pCNI>:
+        b incr_pos
+        :result_ip_ap
+            s:<INCp>([0-9]+)[^<]+<pCNI>:\1:
+    b loop_ap
+    :print_ap
+        s:#[^<]+<pDDA>:#&:
 b redirect
 
 
-#1: <DEC>10#label<CED> -> <DEC>9##label<CED>
+#1-2: <MAXp>110 34#label<pXAM> -> <MAXp>110##label<pXAM>
+:max_pos
+    /(<MAXp>)([0-9]+)#/{
+        s::\1A\2,0B\2,0M\2#:
+        b print_Mp
+    }
+    s:(<MAXp>)([0-9]+) ([0-9]+):\1A\2,\2B\3,\3M\3:
+    :loop_Mp
+        /,0[BM][^<]+<pXAM>/{
+            s:(<MAXp>)A([0-9]+),[1-9][0-9]*B[0-9]+,0M[0-9]+:\1A0,0B0,0M\2:
+            b print_Mp
+        }
+        s:,([0-9]+)(B[^<]+<pXAM>):,<DECp>\1#result_dp_Mp_1<pCED>\2:
+        b decr_pos
+        :result_dp_Mp_1
+            s:,<DECp>([0-9]+)#[^<]+<pCED>(B[^<]+<pXAM>):,\1\2:
+        s:,([0-9]+)(M[^<]+<pXAM>):,<DECp>\1#result_dp_Mp_2<pCED>\2:
+        b decr_pos
+        :result_dp_Mp_2
+            s:,<DECp>([0-9]+)#[^<]+<pCED>(M[^<]+<pXAM>):,\1\2:
+    b loop_Mp
+    :print_Mp
+        s:(<MAXp>)A[0-9]+,[0-9]+B[0-9]+,[0-9]+M([0-9]+):\1\2:
+        s:#[^<]+<pXAM>:#&:
+b redirect
+
+
+#1-2: <MINp>110 34#label<pNIM> -> <MINp>34##label<pNIM>
+:min_pos
+    /(<MINp>)([0-9]+)#/{
+        s::\1A\2,0B\2,0m\2#:
+        b print_mp
+    }
+    s:(<MINp>)([0-9]+) ([0-9]+):\1A\2,\2B\3,\3m\3:
+    :loop_mp
+        /,0[Bm][^<]+<pNIM>/{
+            s:(<MINp>)A([0-9]+),0B[0-9]+,[1-9][0-9]*m[0-9]+:\1A0,0B0,0m\2:
+            b print_mp
+        }
+        s:,([0-9]+)(B[^<]+<pNIM>):,<DECp>\1#result_dp_mp_1<pCED>\2:
+        b decr_pos
+        :result_dp_mp_1
+            s:,<DECp>([0-9]+)#[^<]+<pCED>(B[^<]+<pNIM>):,\1\2:
+        s:,([0-9]+)(m[^<]+<pNIM>):,<DECp>\1#result_dp_mp_2<pCED>\2:
+        b decr_pos
+        :result_dp_mp_2
+            s:,<DECp>([0-9]+)#[^<]+<pCED>(m[^<]+<pNIM>):,\1\2:
+    b loop_mp
+    :print_mp
+        s:(<MINp>)A[0-9]+,[0-9]+B[0-9]+,[0-9]+m([0-9]+):\1\2:
+        s:#[^<]+<pNIM>:#&:
+b redirect
+
+
+#1: <DECp>10#label<pCED> -> <DECp>9##label<pCED>
+#1: <DECp>0#label<pCED> -> <DECp>-1##label<pCED>
 :decr_pos
-	:zeros
-		s:0(@*)(#[^<]+<CED>):@\1\2:
-	t zeros
-	s:9(@*)(#[^<]+<CED>):8\1\2:;t print_dp
-	s:8(@*)(#[^<]+<CED>):7\1\2:;t print_dp
-	s:7(@*)(#[^<]+<CED>):6\1\2:;t print_dp
-	s:6(@*)(#[^<]+<CED>):5\1\2:;t print_dp
-	s:5(@*)(#[^<]+<CED>):4\1\2:;t print_dp
-	s:4(@*)(#[^<]+<CED>):3\1\2:;t print_dp
-	s:3(@*)(#[^<]+<CED>):2\1\2:;t print_dp
-	s:2(@*)(#[^<]+<CED>):1\1\2:;t print_dp
-	s:1(@*)(#[^<]+<CED>):0\1\2:;t print_dp
+	:zeros_dp
+		s:0(@*)(#[^<]+<pCED>):@\1\2:
+	t zeros_dp
+	s:9(@*)(#[^<]+<pCED>):8\1\2:;t print_dp
+	s:8(@*)(#[^<]+<pCED>):7\1\2:;t print_dp
+	s:7(@*)(#[^<]+<pCED>):6\1\2:;t print_dp
+	s:6(@*)(#[^<]+<pCED>):5\1\2:;t print_dp
+	s:5(@*)(#[^<]+<pCED>):4\1\2:;t print_dp
+	s:4(@*)(#[^<]+<pCED>):3\1\2:;t print_dp
+	s:3(@*)(#[^<]+<pCED>):2\1\2:;t print_dp
+	s:2(@*)(#[^<]+<pCED>):1\1\2:;t print_dp
+	s:1(@*)(#[^<]+<pCED>):0\1\2:;t print_dp
 	:print_dp
-		s:(<DEC>)0@:\1@:
+        s:(<DECp>)@#:\1-1#:
+		s:(<DECp>)0@:\1@:
 		:loop_dp
-			s:(<DEC>[^#]*)@:\19:
-		/<DEC>[^#]*@/b loop_dp
-		s:#[^<]+<CED>:#&:
+			s:(<DECp>[^#]*)@:\19:
+		/<DECp>[^#]*@/b loop_dp
+		s:#[^<]+<pCED>:#&:
 b redirect
 
 
-#1: <INC>9#label<CNI> -> <INC>10##label<CNI>
+#1: <INCp>9#label<pCNI> -> <INCp>10##label<pCNI>
 :incr_pos
-	:nines
-		s:9(@*)(#[^<]+<CNI>):@\1\2:
-	t nines
-	s:0(@*)(#[^<]+<CNI>):1\1\2:;t print_ip
-	s:1(@*)(#[^<]+<CNI>):2\1\2:;t print_ip
-	s:2(@*)(#[^<]+<CNI>):3\1\2:;t print_ip
-	s:3(@*)(#[^<]+<CNI>):4\1\2:;t print_ip
-	s:4(@*)(#[^<]+<CNI>):5\1\2:;t print_ip
-	s:5(@*)(#[^<]+<CNI>):6\1\2:;t print_ip
-	s:6(@*)(#[^<]+<CNI>):7\1\2:;t print_ip
-	s:7(@*)(#[^<]+<CNI>):8\1\2:;t print_ip
-	s:8(@*)(#[^<]+<CNI>):9\1\2:;t print_ip
+	:nines_ip
+		s:9(@*)(#[^<]+<pCNI>):@\1\2:
+	t nines_ip
+	s:0(@*)(#[^<]+<pCNI>):1\1\2:;t print_ip
+	s:1(@*)(#[^<]+<pCNI>):2\1\2:;t print_ip
+	s:2(@*)(#[^<]+<pCNI>):3\1\2:;t print_ip
+	s:3(@*)(#[^<]+<pCNI>):4\1\2:;t print_ip
+	s:4(@*)(#[^<]+<pCNI>):5\1\2:;t print_ip
+	s:5(@*)(#[^<]+<pCNI>):6\1\2:;t print_ip
+	s:6(@*)(#[^<]+<pCNI>):7\1\2:;t print_ip
+	s:7(@*)(#[^<]+<pCNI>):8\1\2:;t print_ip
+	s:8(@*)(#[^<]+<pCNI>):9\1\2:;t print_ip
 	:print_ip
-		s:(<INC>)@:\11@:
+		s:(<INCp>)@:\11@:
 		:loop_ip
-			s:(<INC>[^#]*)@:\10:
-		/<INC>[^#]*@/b loop_ip
-		s:#[^<]+<CNI>:#&:
+			s:(<INCp>[^#]*)@:\10:
+		/<INCp>[^#]*@/b loop_ip
+		s:#[^<]+<pCNI>:#&:
 b redirect
 
+
+######################### FUNCTION GLUE #########################
 
 :redirect
-	b library_redirects
-	:continue_redirects
+    b base_lib_redirects
+    :continue_redirects_1
+	b math_lib_redirects
+	:continue_redirects_2
 	b user_redirects
 
 
-:library_redirects
-	/##result_mpp_lcgp<TLUM>/b result_mpp_lcgp
-	/##result_ap_lcgp<DDA>/b result_ap_lcgp
-	/##result_mdp_lcgp<DOM>/b result_mdp_lcgp
-	/##result_dp_ap<CED>/b result_dp_ap
-	/##result_dp_Mp1<CED>/b result_dp_Mp1
-	/##result_dp_Mp2<CED>/b result_dp_Mp2
-	/##result_dp_mp1<CED>/b result_dp_mp1
-	/##result_dp_mp2<CED>/b result_dp_mp2
-	/##result_ap_mdp<DDA>/b result_ap_mdp
-	/##result_mp_mdp<NIM>/b result_mp_mdp
-	/##result_dp_mdp<CED>/b result_dp_mdp
-	/##result_ip_mdp<CNI>/b result_ip_mdp
-	/##result_sp_mpp<QES>/b result_sp_mpp
-	/##result_ap_mpp<DDA>/b result_ap_mpp
-	/##result_ip_ap<CNI>/b result_ip_ap
-	/##result_ip_sp<CNI>/b result_ip_sp
-b continue_redirects
+:base_lib_redirects
+    /##result_dp_mp_1<pCED>/b result_dp_mp_1
+    /##result_dp_mp_2<pCED>/b result_dp_mp_2
+    /##result_dp_Mp_1<pCED>/b result_dp_Mp_1
+    /##result_dp_Mp_2<pCED>/b result_dp_Mp_2
+    /##result_dp_ap<pCED>/b result_dp_ap
+    /##result_ip_ap<pCNI>/b result_ip_ap
+    /##result_dp_sp_1<pCED>/b result_dp_sp_1
+    /##result_dp_sp_2<pCED>/b result_dp_sp_2
+    /##result_dp_mmp<pCED>/b result_dp_mmp
+    /##result_ap_mmp<pDDA>/b result_ap_mmp
+    /##result_mmp_dvp<pTLUM>/b result_mmp_dvp
+    /##result_Mp_dvp<pXAM>/b result_Mp_dvp
+    /##result_dp_dvp<pCED>/b result_dp_dvp
+    /##result_ip_dvp<pCNI>/b result_ip_dvp
+b continue_redirects_1
+
+
+:math_lib_redirects
+    /##result_dp_i<pCED>/b result_dp_i
+	/##result_ip_i<pCNI>/b result_ip_i
+	/##result_ip_d<pCNI>/b result_ip_d
+	/##result_dp_d<pCED>/b result_dp_d
+    /##result_Mp_m<pXAM>/b result_Mp_m
+	/##result_mp_m<pNIM>/b result_mp_m
+    /##result_mp_M<pNIM>/b result_mp_M
+	/##result_Mp_M<pXAM>/b result_Mp_M
+    /##result_ap_a_1<pDDA>/b result_ap_a_1
+    /##result_ap_a_2<pDDA>/b result_ap_a_2
+    /##result_sp_a_1<pBUS>/b result_sp_a_1
+    /##result_sp_a_2<pBUS>/b result_sp_a_2
+    /##result_ap_s_1<pDDA>/b result_ap_s_1
+    /##result_ap_s_2<pDDA>/b result_ap_s_2
+    /##result_sp_s_1<pBUS>/b result_sp_s_1
+    /##result_sp_s_2<pBUS>/b result_sp_s_2
+    /##result_mmp_mm_1<pTLUM>/b result_mmp_mm_1
+    /##result_mmp_mm_2<pTLUM>/b result_mmp_mm_2
+    /##result_mmp_mm_3<pTLUM>/b result_mmp_mm_3
+    /##result_mmp_mm_4<pTLUM>/b result_mmp_mm_4
+    /##result_dvp_dv_1<pVID>/b result_dvp_dv_1
+    /##result_dvp_dv_2<pVID>/b result_dvp_dv_2
+    /##result_dvp_dv_3<pVID>/b result_dvp_dv_3
+    /##result_dvp_dv_4<pVID>/b result_dvp_dv_4
+b continue_redirects_2
 
 
 :EOS
-	#End Of Script (mainly used to skip over remaining code, when needed)
+	#mainly used to skip over remaining code, when needed
